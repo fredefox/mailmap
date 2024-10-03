@@ -59,4 +59,6 @@ showMailmap = concat . fmap go . Map.toList
   go :: (String, Set (String, String)) -> String
   go (e, xs) = unlines $ fmap step $ Set.toList xs
     where
-    step (n, e') = printf "%s <%s> <%s>" n e e'
+    step (n, e')
+      | e == e'   = printf "%s <%s>" n e
+      | otherwise = printf "%s <%s> <%s>" n e e'
