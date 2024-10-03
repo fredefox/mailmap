@@ -52,7 +52,15 @@ extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
 common warnings
-    ghc-options: -Wall
+    ghc-options: -Wall -Werror
+
+library
+  hs-source-dirs: src
+  exposed-modules: Mailmap
+  build-depends:    base >= 4.17.2.1
+                  , text
+                  , containers
+                  , parsec
 
 executable mailmap
     -- Import common warning flags.
@@ -69,12 +77,20 @@ executable mailmap
 
     -- Other library packages from which modules are imported.
     build-depends:    base >= 4.17.2.1
+                    , mailmap
                     , text
-                    , containers
-                    , parsec
 
     -- Directories containing source files.
     hs-source-dirs:   .
 
     -- Base language which the package is written in.
     default-language: GHC2021
+
+test-suite test
+    type:           exitcode-stdio-1.0
+    main-is:        Main.hs
+    hs-source-dirs: test
+    build-depends:  base
+                  , mailmap
+                  , QuickCheck
+                  , text
