@@ -6,4 +6,4 @@ import qualified Data.Text.IO as Text
 main :: IO ()
 main = do
   t <- Text.getContents
-  Text.putStr $ Mailmap.normalise t
+  Text.putStrLn $ Mailmap.normalise t
