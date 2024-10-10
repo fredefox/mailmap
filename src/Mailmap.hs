@@ -3,7 +3,6 @@ module Mailmap (normalise, parse, invert) where
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Text (Text)
-import Text.Parsec (manyTill, anyChar, char, try, skipMany, anyToken, lookAhead)
 import qualified Text.Parsec as Parsec
 import Control.Applicative
 import Text.Parsec.Text (Parser)
@@ -18,34 +17,37 @@ import Prettyprinter (Pretty, Doc)
 import qualified Prettyprinter as Pretty
 import qualified Prettyprinter.Render.Text as Pretty
 
-normalise :: Text -> Text
-normalise txt
-  = Pretty.renderStrict
-  $ Pretty.layoutPretty Pretty.defaultLayoutOptions
-  $ Pretty.pretty
-  $ either (error "Parse error") id
-  $ Parsec.parse parseMailmap mempty txt
+normalise :: Text -> Either Parsec.ParseError Text
+normalise txt = do
+  m <- Parsec.parse parseMailmap "<stdin>" txt
+  pure
+    $ Pretty.renderStrict
+    $ Pretty.layoutPretty Pretty.defaultLayoutOptions
+    $ Pretty.pretty m
 
 parse :: Text -> Either Parsec.ParseError (Mailmap String)
 parse = Parsec.parse parseMailmap mempty
 
 space :: Parser Char
-space = char ' '
+space = Parsec.char ' '
 
 spaces :: Parser ()
-spaces = skipMany space
+spaces = Parsec.skipMany space
 
 bracketed :: Char -> Char -> Parser String
-bracketed b e = char b *> anyTill (char e)
+bracketed b e = Parsec.char b *> anyTill (Parsec.char e)
 
-anyTill :: (Parsec.Stream s m a, Show a) => Parsec.ParsecT s u m end -> Parsec.ParsecT s u m [a]
-anyTill = manyTill anyToken
+anyTill :: (Parsec.Stream s m a, Show a)
+  => Parsec.ParsecT s u m end -> Parsec.ParsecT s u m [a]
+anyTill = Parsec.manyTill Parsec.anyToken
 
 eol :: Parser Char
-eol = char '\n'
+eol = Parsec.char '\n'
 
 parseEmails :: Parser (NonEmpty String)
-parseEmails = fmap NonEmpty.fromList $ bracketed '<' '>' `Parsec.sepBy1` spaces
+parseEmails
+  = fmap NonEmpty.fromList
+  $ bracketed '<' '>' `Parsec.sepBy1` spaces
 
 parseMailmap :: Parser (Mailmap String)
 parseMailmap = fromList <$> parseLines
@@ -55,7 +57,8 @@ parseLines = many $ parseLine <* eol
 
 parseLine :: Parser (String, NonEmpty String)
 parseLine = do
-  name <- manyTill anyChar (try (spaces *> lookAhead (char '<')))
+  name <- Parsec.manyTill Parsec.letter
+    $ Parsec.try $ spaces *> Parsec.lookAhead (Parsec.char '<')
   emails <- parseEmails
   pure (name, emails)
 

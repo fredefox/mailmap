@@ -14,7 +14,9 @@ idempotent :: Eq a => (a -> a) -> a -> Bool
 idempotent f x = f (f x) == f x
 
 main :: IO ()
-main = quickCheck $ forAll gLines $ idempotent Mailmap.normalise
+main = quickCheck $ forAll gLines $ idempotent f
+  where
+  f = either undefined id . Mailmap.normalise
 
 email :: Gen Text
 email = do

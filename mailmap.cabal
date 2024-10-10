@@ -63,7 +63,7 @@ library
   build-depends:    base >= 4.17.2.1
                   , text
                   , containers
-                  , parsec
+                  , parsec >= 3.1.17
                   , prettyprinter
 
 executable mailmap
